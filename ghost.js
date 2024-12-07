@@ -238,11 +238,16 @@ class Ghost {
             this.height
         );
         canvasContext.restore();
+        let circleY = this.y + oneBlockSize / 2;
+        if (circleY + this.range * oneBlockSize > canvas.height - bottomSpace) {
+            circleY = canvas.height - bottomSpace - this.range * oneBlockSize;
+        }
+
         canvasContext.beginPath();
-        canvasContext.strokeStyle = "red";
+        canvasContext.strokeStyle = "green";
         canvasContext.arc(
             this.x + oneBlockSize / 2,
-            this.y + oneBlockSize / 2,
+            circleY,
             this.range * oneBlockSize,
             0,
             2 * Math.PI

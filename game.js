@@ -3,6 +3,17 @@ const canvasContext = canvas.getContext("2d");
 const pacmanFrames = document.getElementById("animation");
 const ghostFrames = document.getElementById("ghosts");
 
+const mapWidth = 21; 
+const mapHeight = 23; 
+const desiredCanvasWidth = 420; 
+const desiredCanvasHeight = 460; 
+const bottomSpace = 50;
+
+let oneBlockSize = Math.min(desiredCanvasWidth / mapWidth, desiredCanvasHeight / mapHeight);
+
+canvas.width = oneBlockSize * mapWidth;
+canvas.height = oneBlockSize * mapHeight + bottomSpace;
+
 let createRect = (x, y, width, height, color) => {
     canvasContext.fillStyle = color;
     canvasContext.fillRect(x, y, width, height);
@@ -20,11 +31,12 @@ let ghostImageLocations = [
     { x: 0, y: 121 },
     { x: 176, y: 121 },
 ];
+let gameOver = false;
 
 // Game variables
 let fps = 30;
 let pacman;
-let oneBlockSize = 20;
+//let oneBlockSize = 20;
 let score = 0;
 let ghosts = [];
 let wallSpaceWidth = oneBlockSize / 1.6;
@@ -32,9 +44,9 @@ let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
 let wallInnerColor = "black";
 
 // we now create the map of the walls,
-// if 1 wall, if 0 not wall
+// if 1 wall, if 0 not wall, if 2 food
 // 21 columns // 23 rows
-let map = [
+let originMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
@@ -60,6 +72,8 @@ let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
+let map = JSON.parse(JSON.stringify(originMap));
+
 let randomTargetsForGhosts = [
     { x: 1 * oneBlockSize, y: 1 * oneBlockSize },
     { x: 1 * oneBlockSize, y: (map.length - 2) * oneBlockSize },
@@ -69,12 +83,6 @@ let randomTargetsForGhosts = [
         y: (map.length - 2) * oneBlockSize,
     },
 ];
-
-// for (let i = 0; i < map.length; i++) {
-//     for (let j = 0; j < map[0].length; j++) {
-//         map[i][j] = 2;
-//     }
-// }
 
 let createNewPacman = () => {
     pacman = new Pacman(
@@ -87,8 +95,10 @@ let createNewPacman = () => {
 };
 
 let gameLoop = () => {
+    if (!gameOver){
     update();
     draw();
+    }
 };
 
 let gameInterval = setInterval(gameLoop, 1000 / fps);
@@ -102,6 +112,25 @@ let onGhostCollision = () => {
     lives--;
     restartPacmanAndGhosts();
     if (lives == 0) {
+        gameOver = true;
+        clearInterval(gameInterval);
+        window.addEventListener("keydown", restartGame);
+        update();
+        draw();
+    }
+};
+let restartGame = (event) => {
+    let k = event.keyCode;
+    if (k == 82 || k == 13) {
+        // r or enter
+        lives = 3;
+        score = 0;
+        gameOver = false;
+        map = JSON.parse(JSON.stringify(originMap))
+        restartPacmanAndGhosts();
+        gameInterval = setInterval(gameLoop, 1000 / fps);
+        window.removeEventListener("keydown", restartGame);
+        gameLoop();
     }
 };
 
@@ -131,7 +160,7 @@ let drawFoods = () => {
 };
 
 let drawRemainingLives = () => {
-    canvasContext.font = "20px Emulogic";
+    canvasContext.font = "20px Copperplate fantacy";
     canvasContext.fillStyle = "white";
     canvasContext.fillText("Lives: ", 220, oneBlockSize * (map.length + 1));
 
@@ -151,15 +180,25 @@ let drawRemainingLives = () => {
 };
 
 let drawScore = () => {
-    canvasContext.font = "20px Emulogic";
+    canvasContext.font = "20px Copperplate fantacy";
     canvasContext.fillStyle = "white";
+    canvasContext.textAlign = "left";
     canvasContext.fillText(
         "Score: " + score,
         0,
         oneBlockSize * (map.length + 1)
     );
 };
-
+let drawGameOver = () => {
+    canvasContext.save();
+    canvasContext.font = "50px Copperplate fantacy";
+    canvasContext.fillStyle = "red";
+    canvasContext.textAlign = "center";
+    canvasContext.fillText("GAME OVER!", canvas.width / 2, (canvas.height-bottomSpace)*0.5);
+    canvasContext.font = '20px Copperplate fantacy';
+    canvasContext.fillStyle = 'white';
+    canvasContext.fillText("Press 'R' or Enter to try again!", canvas.width * 0.5, canvas.height - 10);
+}
 let draw = () => {
     canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     createRect(0, 0, canvas.width, canvas.height, "black");
@@ -169,6 +208,9 @@ let draw = () => {
     pacman.draw();
     drawScore();
     drawRemainingLives();
+    if(gameOver){
+        drawGameOver();
+    }
 };
 
 let drawWalls = () => {
@@ -180,7 +222,7 @@ let drawWalls = () => {
                     i * oneBlockSize,
                     oneBlockSize,
                     oneBlockSize,
-                    "#342DCA"
+                    "#0044cc"
                 );
                 if (j > 0 && map[i][j - 1] == 1) {
                     createRect(
