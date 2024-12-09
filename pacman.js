@@ -59,12 +59,18 @@ class Pacman {
         switch (this.direction) {
             case DIRECTION_RIGHT: // Right
                 this.x += this.speed;
+                if (this.getMapX() >= map[0].length) {
+                    this.x = 0;
+                }
                 break;
             case DIRECTION_UP: // Up
                 this.y -= this.speed;
                 break;
             case DIRECTION_LEFT: // Left
                 this.x -= this.speed;
+                if (this.getMapX() < 0) { 
+                    this.x = (map[0].length - 1) * oneBlockSize; 
+                }
                 break;
             case DIRECTION_BOTTOM: // Bottom
                 this.y += this.speed;
