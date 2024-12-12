@@ -23,7 +23,7 @@ const DIRECTION_RIGHT = 4;
 const DIRECTION_UP = 3;
 const DIRECTION_LEFT = 2;
 const DIRECTION_BOTTOM = 1;
-let lives = 3;
+let lives = 6;
 let ghostCount = 4;
 let ghostImageLocations = [
     { x: 0, y: 0 },
@@ -31,6 +31,7 @@ let ghostImageLocations = [
     { x: 0, y: 121 },
     { x: 176, y: 121 },
 ];
+
 let gameOver = false;
 
 // Game variables
@@ -39,9 +40,11 @@ let pacman;
 //let oneBlockSize = 20;
 let score = 0;
 let ghosts = [];
+let ghostSpeed = 1;
 let wallSpaceWidth = oneBlockSize / 1.6;
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
 let wallInnerColor = "black";
+let level = 1;
 
 // we now create the map of the walls,
 // if 1 wall, if 0 not wall, if 2 food
@@ -96,8 +99,15 @@ let createNewPacman = () => {
 
 let gameLoop = () => {
     if (!gameOver){
-    update();
-    draw();
+        if (checkWinCondition()) {
+            gameOver = true;
+            clearInterval(gameInterval);
+            drawWinMessage();
+            window.addEventListener("keydown", nextLevel);
+        } else {
+            update();
+            draw();
+        }
     }
 };
 
@@ -119,11 +129,25 @@ let onGhostCollision = () => {
         draw();
     }
 };
+
+let nextLevel = (event) => {
+    if (event.keycode == 32) {
+        level++;
+        for (let ghost of ghosts) {
+            ghotSpeed += 0.5;
+        }
+        gameOver = false;
+        window.removeEventListener("keydown". nextLevel);
+        resetLevel();
+        gameInterval = setInterval(gameLoop, 1000 / fps);
+    }
+};
+
 let restartGame = (event) => {
     let k = event.keyCode;
     if (k == 82 || k == 13) {
         // r or enter
-        lives = 3;
+        lives = 6;
         score = 0;
         gameOver = false;
         map = JSON.parse(JSON.stringify(originMap))
@@ -141,6 +165,22 @@ let update = () => {
     if (pacman.checkGhostCollision(ghosts)) {
         onGhostCollision();
     }
+};
+
+let resetLevel = () => {
+    map = JSON.parse(JSON.stringify(originMap));
+    restartPacmanAndGhosts();
+};
+
+let checkWinCondition = () => {
+    console.log("Check win condition...")
+    for (let row of map) {
+        if (row.includes(2)) {
+            return false;
+        }
+    }
+    resetLevel();
+    return true;
 };
 
 let drawFoods = () => {
@@ -189,6 +229,7 @@ let drawScore = () => {
         oneBlockSize * (map.length + 1)
     );
 };
+
 let drawGameOver = () => {
     canvasContext.save();
     canvasContext.font = "50px Copperplate fantacy";
@@ -198,11 +239,40 @@ let drawGameOver = () => {
     canvasContext.font = '20px Copperplate fantacy';
     canvasContext.fillStyle = 'white';
     canvasContext.fillText("Press 'R' or Enter to try again!", canvas.width * 0.5, canvas.height - 10);
-}
+};
+
+let drawWinMessage = () => {
+    canvasContext.save();
+    canvasContext.font = "bold 50px Copperplate fantacy";
+    canvasContext.fillStyle = "green";
+    canvasContext.textAlign = "center";
+    canvasContext.fillText("YOU WIN!", canvas.width / 2, canvas.height / 2 + 50);
+
+    canvasContext.font = "20px Copperplate fantacy";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Press 'SPACE' to go to the next level",
+        canvas.width / 2,
+        canvas.height / 2 + 20
+    );
+    canvasContext.restore();
+};
+
+let drawLevel = () => {
+    canvasContext.font = "20px Copperplate fantacy"; 
+    canvasContext.fillStyle = "white";
+    canvasContext.textAlign = "left"; 
+    canvasContext.fillText(
+        `Level: ${level}`,
+        0,
+        oneBlockSize * (map.length + 1) + 25
+    );    
+};
+
 let draw = () => {
     canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     createRect(0, 0, canvas.width, canvas.height, "black");
     drawWalls();
+    drawLevel();
     drawFoods();
     drawGhosts();
     pacman.draw();
@@ -276,7 +346,7 @@ let createGhosts = () => {
             10 * oneBlockSize + (i % 2 == 0 ? 0 : 1) * oneBlockSize,
             oneBlockSize,
             oneBlockSize,
-            pacman.speed / 2,
+            ghostSpeed,
             ghostImageLocations[i % 4].x,
             ghostImageLocations[i % 4].y,
             124,
