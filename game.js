@@ -23,7 +23,7 @@ const DIRECTION_RIGHT = 4;
 const DIRECTION_UP = 3;
 const DIRECTION_LEFT = 2;
 const DIRECTION_BOTTOM = 1;
-let lives = 6;
+let lives = 3;
 let ghostCount = 4;
 let ghostImageLocations = [
     { x: 0, y: 0 },
@@ -131,11 +131,15 @@ let onGhostCollision = () => {
 };
 
 let nextLevel = (event) => {
-    if (event.keycode == 32) {
+    if (level >= 4) {
+        clearInterval(gameInterval);
+        drawFinalMessage();
+        gameOver = true;
+        window.addEventListener("keydown", restartGame);
+        return;
+    }
         level++;
-        for (let ghost of ghosts) {
-            ghotSpeed += 0.5;
-        }
+        ghostSpeed += 0.25;
         gameOver = false;
         window.removeEventListener("keydown". nextLevel);
         resetLevel();
@@ -147,8 +151,10 @@ let restartGame = (event) => {
     let k = event.keyCode;
     if (k == 82 || k == 13) {
         // r or enter
-        lives = 6;
+        lives = 3;
         score = 0;
+        level = 1;
+        ghostSpeed = 1;
         gameOver = false;
         map = JSON.parse(JSON.stringify(originMap))
         restartPacmanAndGhosts();
@@ -173,7 +179,6 @@ let resetLevel = () => {
 };
 
 let checkWinCondition = () => {
-    console.log("Check win condition...")
     for (let row of map) {
         if (row.includes(2)) {
             return false;
@@ -254,6 +259,29 @@ let drawWinMessage = () => {
         canvas.width / 2,
         canvas.height / 2 + 20
     );
+    canvasContext.restore();
+};
+
+let drawFinalMessage = () => {
+    canvasContext.save();
+    canvasContext.font = "bold 30px Copperplate fantacy";
+    canvasContext.fillStyle = "orange";
+    canvasContext.textAlign = "center";
+    canvasContext.fillText("CONGRATULATIONS!", 
+        canvas.width / 2, 
+        canvas.height / 2 - 30);
+
+    canvasContext.font = "30px Copperplate fantacy";
+    canvasContext.fillText("YOU FINISHED ALL LEVELS",
+        canvas.width / 2,
+        canvas.height / 2 + 40
+    );
+
+    canvasContext.font = "20px Copperplate fantacy";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Press 'R' to restart the game",
+        canvas.width * 0.5, 
+        canvas.height - 10);
     canvasContext.restore();
 };
 
