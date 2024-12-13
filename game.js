@@ -31,6 +31,7 @@ let ghostImageLocations = [
     { x: 0, y: 121 },
     { x: 176, y: 121 },
 ];
+
 let gameOver = false;
 
 // Game variables
@@ -39,9 +40,11 @@ let pacman;
 //let oneBlockSize = 20;
 let score = 0;
 let ghosts = [];
+let ghostSpeed = 2;
 let wallSpaceWidth = oneBlockSize / 1.6;
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
 let wallInnerColor = "black";
+let level = 1;
 
 // we now create the map of the walls,
 // if 1 wall, if 0 not wall, if 2 food
@@ -96,8 +99,25 @@ let createNewPacman = () => {
 
 let gameLoop = () => {
     if (!gameOver){
-    update();
-    draw();
+        if (checkWinCondition()) {
+            gameOver = true;
+            clearInterval(gameInterval);
+
+            if (level >= 3) {
+                drawFinalMessage();
+            } else {
+                drawWinMessage();
+                level++;
+                setTimeout(() => {
+                    resetLevel();
+                    gameOver = false;
+                    gameInterval = setInterval(gameLoop, 1000 / fps);
+                }, 1000);
+            }
+        } else {
+            update();
+            draw();
+        }
     }
 };
 
@@ -119,12 +139,35 @@ let onGhostCollision = () => {
         draw();
     }
 };
+
+let nextLevel = (event) => {
+    if (level >= 3 ) {
+        clearInterval(gameInterval);
+        drawFinalMessage();
+        gameOver = true;
+        window.addEventListener("keydown", nextLevel);
+        window.addEventListener("keydown", restartGame);
+        return;
+    }
+
+        level++;
+        ghostSpeed += 0.25;
+        gameOver = false;
+        resetLevel();
+        gameInterval = setInterval(gameLoop, 1000 / fps);
+        window.removeEventListener("keydown", nextLevel);
+};
+
 let restartGame = (event) => {
     let k = event.keyCode;
     if (k == 82 || k == 13) {
+        clearInterval(gameInterval);
         // r or enter
+
         lives = 3;
         score = 0;
+        level = 1;
+        ghostSpeed = 1;
         gameOver = false;
         map = JSON.parse(JSON.stringify(originMap))
         restartPacmanAndGhosts();
@@ -141,6 +184,21 @@ let update = () => {
     if (pacman.checkGhostCollision(ghosts)) {
         onGhostCollision();
     }
+};
+
+let resetLevel = () => {
+    map = JSON.parse(JSON.stringify(originMap));
+    restartPacmanAndGhosts();
+};
+
+let checkWinCondition = () => {
+    for (let row of map) {
+        if (row.includes(2)) {
+            return false;
+        }
+    }
+    resetLevel();
+    return true;
 };
 
 let drawFoods = () => {
@@ -189,6 +247,7 @@ let drawScore = () => {
         oneBlockSize * (map.length + 1)
     );
 };
+
 let drawGameOver = () => {
     canvasContext.save();
     canvasContext.font = "50px Copperplate fantacy";
@@ -198,11 +257,65 @@ let drawGameOver = () => {
     canvasContext.font = '20px Copperplate fantacy';
     canvasContext.fillStyle = 'white';
     canvasContext.fillText("Press 'R' or Enter to try again!", canvas.width * 0.5, canvas.height - 10);
-}
+};
+
+let drawWinMessage = () => {
+    canvasContext.save();
+    canvasContext.font = "bold 50px Copperplate fantacy";
+    canvasContext.fillStyle = "green";
+    canvasContext.textAlign = "center";
+    canvasContext.fillText("YOU WIN!", canvas.width / 2, canvas.height / 2 + 50);
+
+    canvasContext.font = "20px Copperplate fantacy";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Press 'SPACE' to go to the next level",
+        canvas.width / 2,
+        canvas.height / 2 + 20
+    );
+    canvasContext.restore();
+};
+
+let drawFinalMessage = () => {
+    canvasContext.save();
+    canvasContext.font = "bold 30px Copperplate fantacy";
+    canvasContext.fillStyle = "orange";
+    canvasContext.textAlign = "center";
+    canvasContext.fillText("CONGRATULATIONS!", 
+        canvas.width / 2, 
+        canvas.height / 2 - 30);
+
+    canvasContext.font = "30px Copperplate fantacy";
+    canvasContext.fillText("YOU FINISHED ALL LEVELS",
+        canvas.width / 2,
+        canvas.height / 2 + 40
+    );
+
+    canvasContext.font = "20px Copperplate fantacy";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText("Press 'R' to restart the game",
+        canvas.width * 0.5, 
+        canvas.height - 10);
+    canvasContext.restore();
+
+    window.addEventListener("keydown", restartGame);
+};
+
+let drawLevel = () => {
+    canvasContext.font = "20px Copperplate fantacy"; 
+    canvasContext.fillStyle = "white";
+    canvasContext.textAlign = "left"; 
+    canvasContext.fillText(
+        `Level: ${level}`,
+        0,
+        oneBlockSize * (map.length + 1) + 25
+    );    
+};
+
 let draw = () => {
     canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     createRect(0, 0, canvas.width, canvas.height, "black");
     drawWalls();
+    drawLevel();
     drawFoods();
     drawGhosts();
     pacman.draw();
@@ -276,7 +389,7 @@ let createGhosts = () => {
             10 * oneBlockSize + (i % 2 == 0 ? 0 : 1) * oneBlockSize,
             oneBlockSize,
             oneBlockSize,
-            pacman.speed / 2,
+            ghostSpeed,
             ghostImageLocations[i % 4].x,
             ghostImageLocations[i % 4].y,
             124,
