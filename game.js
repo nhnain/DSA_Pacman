@@ -40,7 +40,7 @@ let pacman;
 //let oneBlockSize = 20;
 let score = 0;
 let ghosts = [];
-let ghostSpeed = 2;
+let ghostSpeed = 2; //can be increased
 let wallSpaceWidth = oneBlockSize / 1.6;
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
 let wallInnerColor = "black";
@@ -141,7 +141,7 @@ let onGhostCollision = () => {
 };
 
 let nextLevel = (event) => {
-    if (level >= 3 ) {
+    if (level > 3 ) {
         clearInterval(gameInterval);
         drawFinalMessage();
         gameOver = true;
@@ -167,7 +167,7 @@ let restartGame = (event) => {
         lives = 3;
         score = 0;
         level = 1;
-        ghostSpeed = 1;
+        ghostSpeed = 2; //can be increased
         gameOver = false;
         map = JSON.parse(JSON.stringify(originMap))
         restartPacmanAndGhosts();
@@ -220,7 +220,7 @@ let drawFoods = () => {
 let drawRemainingLives = () => {
     canvasContext.font = "20px Copperplate fantacy";
     canvasContext.fillStyle = "white";
-    canvasContext.fillText("Lives: ", 220, oneBlockSize * (map.length + 1));
+    canvasContext.fillText("Lives: ", canvas.width - oneBlockSize*6, oneBlockSize * (map.length + 1));
 
     for (let i = 0; i < lives; i++) {
         canvasContext.drawImage(
@@ -229,7 +229,7 @@ let drawRemainingLives = () => {
             0,
             oneBlockSize,
             oneBlockSize,
-            350 + i * oneBlockSize,
+            canvas.width - ((i+1)*oneBlockSize),
             oneBlockSize * map.length + 2,
             oneBlockSize,
             oneBlockSize
@@ -253,7 +253,7 @@ let drawGameOver = () => {
     canvasContext.font = "50px Copperplate fantacy";
     canvasContext.fillStyle = "red";
     canvasContext.textAlign = "center";
-    canvasContext.fillText("GAME OVER!", canvas.width / 2, (canvas.height-bottomSpace)*0.5);
+    canvasContext.fillText("GAME OVER!", canvas.width / 2, canvas.height/2);
     canvasContext.font = '20px Copperplate fantacy';
     canvasContext.fillStyle = 'white';
     canvasContext.fillText("Press 'R' or Enter to try again!", canvas.width * 0.5, canvas.height - 10);
@@ -268,10 +268,6 @@ let drawWinMessage = () => {
 
     canvasContext.font = "20px Copperplate fantacy";
     canvasContext.fillStyle = "white";
-    canvasContext.fillText("Press 'SPACE' to go to the next level",
-        canvas.width / 2,
-        canvas.height / 2 + 20
-    );
     canvasContext.restore();
 };
 
@@ -306,8 +302,8 @@ let drawLevel = () => {
     canvasContext.textAlign = "left"; 
     canvasContext.fillText(
         `Level: ${level}`,
-        0,
-        oneBlockSize * (map.length + 1) + 25
+        canvas.width/2 - oneBlockSize*2,
+        oneBlockSize * (map.length + 1)
     );    
 };
 

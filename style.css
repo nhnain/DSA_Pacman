@@ -1,0 +1,19 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    font-family: Copperplate, fantasy;
+}
+
+canvas {
+    background-color: black;
+    width: auto;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+}
