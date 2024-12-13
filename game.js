@@ -102,8 +102,18 @@ let gameLoop = () => {
         if (checkWinCondition()) {
             gameOver = true;
             clearInterval(gameInterval);
-            drawWinMessage();
-            window.addEventListener("keydown", nextLevel);
+
+            if (level >= 3) {
+                drawFinalMessage();
+            } else {
+                drawWinMessage();
+                level++;
+                setTimeout(() => {
+                    resetLevel();
+                    gameOver = false;
+                    gameInterval = setInterval(gameLoop, 1000 / fps);
+                }, 1000);
+            }
         } else {
             update();
             draw();
@@ -131,26 +141,29 @@ let onGhostCollision = () => {
 };
 
 let nextLevel = (event) => {
-    if (level >= 4) {
+    if (level >= 3 ) {
         clearInterval(gameInterval);
         drawFinalMessage();
         gameOver = true;
+        window.addEventListener("keydown", nextLevel);
         window.addEventListener("keydown", restartGame);
         return;
     }
+
         level++;
         ghostSpeed += 0.25;
         gameOver = false;
-        window.removeEventListener("keydown". nextLevel);
         resetLevel();
         gameInterval = setInterval(gameLoop, 1000 / fps);
-    }
+        window.removeEventListener("keydown", nextLevel);
 };
 
 let restartGame = (event) => {
     let k = event.keyCode;
     if (k == 82 || k == 13) {
+        clearInterval(gameInterval);
         // r or enter
+
         lives = 3;
         score = 0;
         level = 1;
@@ -283,6 +296,8 @@ let drawFinalMessage = () => {
         canvas.width * 0.5, 
         canvas.height - 10);
     canvasContext.restore();
+
+    window.addEventListener("keydown", restartGame);
 };
 
 let drawLevel = () => {
