@@ -141,11 +141,10 @@ let onGhostCollision = () => {
 };
 
 let nextLevel = (event) => {
-    if (level > 3 ) {
+    if (level >= 3 ) {
         clearInterval(gameInterval);
         drawFinalMessage();
         gameOver = true;
-        window.addEventListener("keydown", nextLevel);
         window.addEventListener("keydown", restartGame);
         return;
     }
@@ -250,7 +249,7 @@ let drawScore = () => {
 
 let drawGameOver = () => {
     canvasContext.save();
-    canvasContext.font = "50px Copperplate fantacy";
+    canvasContext.font = "bold 50px Copperplate fantacy";
     canvasContext.fillStyle = "red";
     canvasContext.textAlign = "center";
     canvasContext.fillText("GAME OVER!", canvas.width / 2, canvas.height/2);
@@ -264,7 +263,7 @@ let drawWinMessage = () => {
     canvasContext.font = "bold 50px Copperplate fantacy";
     canvasContext.fillStyle = "green";
     canvasContext.textAlign = "center";
-    canvasContext.fillText("YOU WIN!", canvas.width / 2, canvas.height / 2 + 50);
+    canvasContext.fillText("YOU WIN!", canvas.width / 2, canvas.height / 2);
 
     canvasContext.font = "20px Copperplate fantacy";
     canvasContext.fillStyle = "white";
