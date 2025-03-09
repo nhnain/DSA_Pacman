@@ -20,5 +20,5 @@ style.css: defining the game’s visual styles
    git clone https://github.com/nhnain/DSA_Pacman.git
    ```
 2. Start live server:
-  Right click to the file **pacman.html** and choose **Open with live server**
+  Right click to the file **pacman.html** and choose **Open with live server**.
   If you have not installed Live Server yet, please download it in the extension before running the code if you are using VSCode
